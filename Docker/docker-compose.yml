@@ -1,0 +1,67 @@
+version: '2.2'
+services:
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.6.0
+    container_name: es01
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - ./config/jvm.options:/usr/share/elasticsearch/config/jvm.options
+      - data01:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - elastic
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.6.0
+    ports:
+      - 5601:5601
+    volumes:
+      - ./config/kibana.yml:/usr/share/kibana/config/kibana.yml
+    networks:
+      - elastic
+  apm:
+    image: docker.elastic.co/apm/apm-server:7.6.0
+    ports:
+      - 8200:8200
+    volumes:
+      - ./config/apm-server.yml:/usr/share/apm-server/apm-server.yml
+    networks:
+      - elastic
+  db:
+    image: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: docker
+    volumes:
+      - ./config/init-user-db.sh:/docker-entrypoint-initdb.d/init-user-db.sh
+    networks:
+      - elastic
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 9000:8080
+    networks:
+      - elastic
+  spring:
+    build: ../.
+    ports:
+      - 8080:8080
+    networks:
+      - elastic
+
+volumes:
+  data01:
+    driver: local
+
+networks:
+  elastic:
+    driver: bridge

@@ -1,0 +1,5 @@
+cluster.name: "docker-cluster"
+network.host: 0.0.0.0
+node.name: es01
+bootstrap.memory_lock: true
+discovery.type: single-node
